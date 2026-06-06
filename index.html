@@ -13,50 +13,56 @@
   <script>
     tailwind.config = {
       theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-        }
+        extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } }
       }
     }
   </script>
   <style>
     body { background-color: #F8FAF9; }
-    /* Hide scrollbar */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "framer-motion": "https://esm.sh/framer-motion@10.16.4",
-        "lucide-react": "https://esm.sh/lucide-react@latest"
-      }
-    }
-  </script>
+  <!-- React & ReactDOM UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Framer Motion UMD -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+  <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel" data-type="module" data-presets="react">
-    import React, { useState, useEffect } from 'react';
-    import { createRoot } from 'react-dom/client';
-    import { motion, AnimatePresence } from 'framer-motion';
-    import { FolderTree, Search, Users, Sparkles, ShieldCheck, ChevronRight, Quote, Menu, X } from 'lucide-react';
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { createRoot } = ReactDOM;
+    const { motion, AnimatePresence } = window.Motion || window.FramerMotion || {}; 
 
-    // ----------------------------------------------------
-    // NAVBAR COMPONENT
-    // ----------------------------------------------------
+    // Safe motion components in case CDN fails
+    const MDiv = motion ? motion.div : (props) => <div className={`${props.className || ''} fade-in`} {...props}>{props.children}</div>;
+
+    // Inline SVGs replacing Lucide React for 100% stability
+    const Icons = {
+      FolderTree: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M13 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5l2 3h8a2 2 0 0 1 2 2v2"/><path d="M13 14v8"/><path d="M13 14h6"/><path d="M19 14v4"/></svg>,
+      Search: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+      Users: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+      Sparkles: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>,
+      ShieldCheck: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-2 7-2 2.5 0 5 1 7 2a1 1 0 0 1 1 1v7Z"/><path d="m9 12 2 2 4-4"/></svg>,
+      ChevronRight: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>,
+      Quote: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.99c.99 0 1 .98 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>,
+      Menu: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
+      X: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    };
+
     function Navbar({ currentPage, setCurrentPage }) {
       const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
       const navItems = [
         { id: 'Home', label: 'Trang chủ' },
         { id: 'Projects', label: 'Dự án' },
@@ -71,12 +77,10 @@
 
       return (
         <header className="fixed top-0 inset-x-0 z-50 px-6 py-4 flex flex-row justify-between items-center bg-[#F8FAF9]/90 backdrop-blur-md border-b border-neutral-200 shadow-sm">
-          {/* Logo */}
           <div className="flex flex-row items-center cursor-pointer" onClick={() => handleNav('Home')}>
             <span className="text-2xl font-bold text-emerald-950 tracking-tight">Trang<span className="text-emerald-600">.</span>Portfolio</span>
           </div>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex flex-row text-[16px] font-medium text-neutral-800 items-center">
             {navItems.map((item) => (
               <React.Fragment key={item.id}>
@@ -90,48 +94,35 @@
             ))}
           </nav>
 
-          {/* Mobile Hamburger */}
           <button 
             className="md:hidden text-neutral-800 p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMobileMenuOpen ? <Icons.X /> : <Icons.Menu />}
           </button>
 
-          {/* Mobile Overlay */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute top-full left-0 right-0 bg-white border-b border-neutral-200 shadow-lg flex flex-col p-4 md:hidden"
-              >
-                {navItems.map((item) => (
-                  <button 
-                    key={item.id}
-                    onClick={() => handleNav(item.id)}
-                    className={`text-left text-lg font-medium p-4 rounded-xl mb-2 ${currentPage === item.id ? 'bg-emerald-50 text-emerald-700' : 'text-neutral-700'}`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {isMobileMenuOpen && (
+            <div className="absolute top-full left-0 right-0 bg-white border-b border-neutral-200 shadow-lg flex flex-col p-4 md:hidden fade-in">
+              {navItems.map((item) => (
+                <button 
+                  key={item.id}
+                  onClick={() => handleNav(item.id)}
+                  className={`text-left text-lg font-medium p-4 rounded-xl mb-2 ${currentPage === item.id ? 'bg-emerald-50 text-emerald-700' : 'text-neutral-700'}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
         </header>
       );
     }
 
-    // ----------------------------------------------------
-    // HOMEPAGE COMPONENT
-    // ----------------------------------------------------
     function HomePage() {
       return (
-        <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
-          {/* Banner */}
+        <MDiv initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
           <div className="w-full h-64 md:h-80 bg-gradient-to-r from-emerald-900 to-teal-800 rounded-3xl mb-12 flex items-center justify-center overflow-hidden relative shadow-xl">
-             <motion.div animate={{scale:[1, 1.05, 1]}} transition={{duration:10, repeat: Infinity}} className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
+             <MDiv animate={{scale:[1, 1.05, 1]}} transition={{duration:10, repeat: Infinity}} className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
              <div className="relative z-10 text-center px-4">
                 <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-4">Digital Portfolio</h1>
                 <p className="text-emerald-100 text-lg md:text-xl font-medium max-w-2xl mx-auto">Hành trình khám phá và phát triển năng lực ứng dụng Công nghệ số trong Thiết kế</p>
@@ -139,7 +130,6 @@
           </div>
 
           <div className="flex flex-col md:flex-row gap-10">
-            {/* Left Column */}
             <div className="w-full md:w-1/3 shrink-0">
               <div className="bg-white rounded-3xl overflow-hidden aspect-[3/4] shadow-lg border border-neutral-200 relative group">
                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1288&auto=format&fit=crop" alt="Portrait" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -149,7 +139,6 @@
               </div>
             </div>
 
-            {/* Right Column */}
             <div className="w-full md:w-2/3 flex flex-col gap-10">
               <section>
                 <h2 className="text-2xl font-bold text-emerald-950 mb-5 flex items-center gap-3">
@@ -170,12 +159,12 @@
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles size={64}/></div>
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Icons.Sparkles width="64" height="64" /></div>
                     <h3 className="text-xl font-bold text-emerald-900 mb-3 relative z-10">Mục tiêu ngắn hạn</h3>
                     <p className="text-neutral-700 leading-relaxed relative z-10">Làm chủ các công cụ công nghệ số, ứng dụng thành thạo Trí tuệ nhân tạo (AI) như một trợ lý đắc lực để tối ưu hóa thời gian nghiên cứu và hiện thực hóa các ý tưởng thiết kế phức tạp.</p>
                   </div>
                   <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles size={64}/></div>
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Icons.Sparkles width="64" height="64" /></div>
                     <h3 className="text-xl font-bold text-emerald-900 mb-3 relative z-10">Định hướng dài hạn</h3>
                     <p className="text-neutral-700 leading-relaxed relative z-10">Trở thành một Nhà thiết kế/Kiến trúc sư thị giác chuyên nghiệp, có khả năng kết hợp nhuần nhuyễn giữa tư duy mỹ thuật truyền thống và công nghệ số hiện đại để tạo ra các giải pháp thiết kế có giá trị thực tiễn cao cho xã hội.</p>
                   </div>
@@ -213,13 +202,10 @@
               </section>
             </div>
           </div>
-        </motion.div>
+        </MDiv>
       )
     }
 
-    // ----------------------------------------------------
-    // PROJECTS PAGE COMPONENT
-    // ----------------------------------------------------
     function ProjectsPage() {
       const [activeTab, setActiveTab] = useState(1);
 
@@ -227,11 +213,11 @@
         {
           id: 1,
           title: "QUẢN LÝ TỆP VÀ THƯ MỤC",
-          icon: <FolderTree />,
+          icon: <Icons.FolderTree width="20" height="20" />,
           content: (
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-8 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Search size={20}/></div> 1. Minh chứng cấu trúc thư mục</h3>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Search width="20" height="20"/></div> 1. Minh chứng cấu trúc thư mục</h3>
                 <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic shadow-inner">
                   (Chèn ảnh chụp màn hình sơ đồ cây thư mục máy tính của bạn tại đây)
                 </div>
@@ -260,11 +246,11 @@
         {
           id: 2,
           title: "TÌM KIẾM VÀ ĐÁNH GIÁ THÔNG TIN HỌC THUẬT",
-          icon: <Search />,
+          icon: <Icons.Search width="20" height="20" />,
           content: (
-            <div className="space-y-8">
+            <div className="space-y-8 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Search size={20}/></div> 1. Minh chứng chiến lược tìm kiếm</h3>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Search width="20" height="20"/></div> 1. Minh chứng chiến lược tìm kiếm</h3>
                 <div className="w-full h-48 bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic mb-5 shadow-inner">
                   (Chèn ảnh chụp màn hình thanh tìm kiếm Google Scholar thể hiện câu lệnh nâng cao)
                 </div>
@@ -296,7 +282,7 @@
                       <tr className="bg-neutral-50/50 hover:bg-neutral-50 transition-colors">
                         <td className="p-4 font-bold text-emerald-900">Độ phù hợp<br/><span className="text-sm font-normal text-neutral-500">(Relevance)</span></td>
                         <td className="p-4 text-neutral-700">Nội dung tập trung chính xác vào cách xây dựng và đánh giá portfolio cho sinh viên khối ngành nghệ thuật/thiết kế.</td>
-                        <td className="p-4 text-neutral-700">Đáp trực tiếp nhu cầu nghiên cứu cấu trúc layout và các tiêu chí chấm điểm khắt khe.</td>
+                        <td className="p-4 text-neutral-700">Đáp ứng trực tiếp nhu cầu nghiên cứu cấu trúc layout và các tiêu chí chấm điểm khắt khe.</td>
                       </tr>
                       <tr className="hover:bg-neutral-50 transition-colors">
                         <td className="p-4 font-bold text-emerald-900">Thẩm quyền<br/><span className="text-sm font-normal text-neutral-500">(Authority)</span></td>
@@ -323,11 +309,11 @@
         {
           id: 3,
           title: "VIẾT PROMPT HIỆU QUẢ",
-          icon: <ChevronRight />,
+          icon: <Icons.ChevronRight width="20" height="20" />,
           content: (
-            <div className="space-y-10">
+            <div className="space-y-10 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><ChevronRight size={20}/></div> So sánh hiệu quả và Cơ chế hoạt động của AI</h3>
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.ChevronRight width="20" height="20"/></div> So sánh hiệu quả và Cơ chế hoạt động của AI</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white rounded-2xl border border-rose-200 overflow-hidden shadow-sm flex flex-col h-full">
                     <div className="bg-rose-50 p-4 font-bold text-rose-900 border-b border-rose-100 flex items-center gap-2">
@@ -346,7 +332,7 @@
                   </div>
                   
                   <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm flex flex-col h-full relative">
-                    <div className="absolute top-0 right-0 p-3"><Sparkles className="w-6 h-6 text-emerald-400 opacity-50"/></div>
+                    <div className="absolute top-0 right-0 p-3"><Icons.Sparkles width="24" height="24" className="text-emerald-400 opacity-50"/></div>
                     <div className="bg-emerald-50 p-4 font-bold text-emerald-900 border-b border-emerald-100 flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Prompt cải tiến (Prompt Engineering)
                     </div>
@@ -371,7 +357,7 @@
 
               <div className="bg-neutral-900 text-white p-8 rounded-3xl border border-neutral-800 shadow-lg relative overflow-hidden">
                 <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-                  <Sparkles size={160} />
+                  <Icons.Sparkles width="160" height="160" />
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-3">
                   Phân tích chiều sâu về cơ chế hoạt động của AI
@@ -387,11 +373,11 @@
         {
           id: 4,
           title: "SỬ DỤNG CÔNG CỤ HỢP TÁC TRỰC TUYẾN",
-          icon: <Users />,
+          icon: <Icons.Users width="20" height="20" />,
           content: (
-            <div className="space-y-8">
+            <div className="space-y-8 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Users size={20}/></div> 1. Minh chứng không gian làm việc nhóm</h3>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Users width="20" height="20"/></div> 1. Minh chứng không gian làm việc nhóm</h3>
                 <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic mb-3 shadow-inner">
                   (Chèn ảnh chụp màn hình giao diện quản lý dự án nhóm của bạn trên Trello hoặc Notion tại đây. Đảm bảo ảnh thể hiện rõ các cột tiến độ)
                 </div>
@@ -420,11 +406,11 @@
         {
           id: 5,
           title: "SỬ DỤNG AI HỖ TRỢ SÁNG TẠO",
-          icon: <Sparkles />,
+          icon: <Icons.Sparkles width="20" height="20" />,
           content: (
-            <div className="space-y-8">
+            <div className="space-y-8 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Sparkles size={20}/></div> 1. Trưng bày sản phẩm hoàn thiện</h3>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Sparkles width="20" height="20"/></div> 1. Trưng bày sản phẩm hoàn thiện</h3>
                 <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic shadow-inner">
                   (Nhúng sản phẩm cuối cùng của bạn tại đây: File ảnh thiết kế chất lượng cao, link video, hoặc tài liệu số đã hoàn thiện)
                 </div>
@@ -439,13 +425,13 @@
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-3 mb-10 bg-emerald-950 text-emerald-100 p-6 rounded-2xl text-sm font-medium text-center shadow-lg relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                   <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Ý tưởng gốc]</div>
-                  <ChevronRight className="hidden lg:block w-5 h-5 text-emerald-500 shrink-0 relative z-10"/>
+                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
                   <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Viết Prompt AI]</div>
-                  <ChevronRight className="hidden lg:block w-5 h-5 text-emerald-500 shrink-0 relative z-10"/>
+                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
                   <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Sửa lỗi AI]</div>
-                  <ChevronRight className="hidden lg:block w-5 h-5 text-emerald-500 shrink-0 relative z-10"/>
+                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
                   <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Hậu kỳ thủ công]</div>
-                  <ChevronRight className="hidden lg:block w-5 h-5 text-emerald-500 shrink-0 relative z-10"/>
+                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
                   <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-500 text-white p-3 rounded-lg shadow-md font-bold">[Sản phẩm xuất sắc]</div>
                 </div>
 
@@ -468,7 +454,7 @@
                 </div>
                 
                 <div className="mt-8 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 text-emerald-900 shadow-sm flex items-start gap-4">
-                  <Sparkles className="w-8 h-8 shrink-0 text-emerald-500" />
+                  <Icons.Sparkles width="32" height="32" className="shrink-0 text-emerald-500" />
                   <div>
                     <strong className="block text-lg mb-1">Kết luận</strong>
                     Quy trình này chứng minh AI đóng vai trò mở rộng giới hạn sáng tạo và gia tốc thời gian thực thi, trong khi con người giữ vai trò kiểm soát chất lượng thẩm mỹ và định hướng tư duy nghệ thuật.
@@ -481,11 +467,11 @@
         {
           id: 6,
           title: "SỬ DỤNG AI CÓ TRÁCH NHIỆM",
-          icon: <ShieldCheck />,
+          icon: <Icons.ShieldCheck width="20" height="20" />,
           content: (
-            <div className="space-y-10">
+            <div className="space-y-10 fade-in">
               <div>
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><ShieldCheck size={20}/></div> 1. Bộ nguyên tắc đạo đức ứng dụng AI (5 Nguyên tắc)</h3>
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.ShieldCheck width="20" height="20"/></div> 1. Bộ nguyên tắc đạo đức ứng dụng AI (5 Nguyên tắc)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
                     <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xl mb-4">1</div>
@@ -516,7 +502,7 @@
               </div>
 
               <div className="bg-neutral-900 p-8 rounded-3xl border border-neutral-800 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-6 opacity-20"><ShieldCheck size={120} className="text-emerald-500" /></div>
+                <div className="absolute top-0 right-0 p-6 opacity-20"><Icons.ShieldCheck width="120" height="120" className="text-emerald-500" /></div>
                 <h3 className="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-3 relative z-10">
                   2. Tư duy phản biện về thách thức đạo đức và Giải pháp
                 </h3>
@@ -531,7 +517,7 @@
       ];
 
       return (
-        <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-7xl mx-auto w-full">
+        <MDiv initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-7xl mx-auto w-full">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-emerald-950 mb-4">Portfolio Projects</h1>
             <p className="text-neutral-500 text-lg">Tuyển tập các bài tập thực hành kỹ năng số</p>
@@ -539,7 +525,6 @@
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Tabs */}
             <div className="lg:w-1/3 shrink-0">
               <div className="sticky top-28 bg-white p-4 rounded-3xl shadow-lg border border-neutral-200 flex flex-col gap-2 relative z-10">
                 <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 px-4">Danh sách bài tập</div>
@@ -562,38 +547,46 @@
               </div>
             </div>
 
-            {/* Content Area */}
             <div className="lg:w-2/3">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
-                  className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-neutral-200"
-                >
-                  <div className="mb-10 border-b border-neutral-100 pb-6">
-                    <span className="text-emerald-600 font-bold text-sm tracking-wider uppercase mb-2 block">Bài tập {activeTab}</span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-emerald-950 leading-tight">
-                      {projects.find(p => p.id === activeTab).title}
-                    </h2>
-                  </div>
-                  {projects.find(p => p.id === activeTab).content}
-                </motion.div>
-              </AnimatePresence>
+              {AnimatePresence ? (
+                <AnimatePresence mode="wait">
+                  <MDiv
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
+                    className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-neutral-200"
+                  >
+                    <div className="mb-10 border-b border-neutral-100 pb-6">
+                      <span className="text-emerald-600 font-bold text-sm tracking-wider uppercase mb-2 block">Bài tập {activeTab}</span>
+                      <h2 className="text-2xl md:text-3xl font-bold text-emerald-950 leading-tight">
+                        {projects.find(p => p.id === activeTab).title}
+                      </h2>
+                    </div>
+                    {projects.find(p => p.id === activeTab).content}
+                  </MDiv>
+                </AnimatePresence>
+              ) : (
+                <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-neutral-200 fade-in">
+                    <div className="mb-10 border-b border-neutral-100 pb-6">
+                      <span className="text-emerald-600 font-bold text-sm tracking-wider uppercase mb-2 block">Bài tập {activeTab}</span>
+                      <h2 className="text-2xl md:text-3xl font-bold text-emerald-950 leading-tight">
+                        {projects.find(p => p.id === activeTab).title}
+                      </h2>
+                    </div>
+                    {projects.find(p => p.id === activeTab).content}
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </MDiv>
       )
     }
 
-    // ----------------------------------------------------
-    // CONCLUSION PAGE COMPONENT
-    // ----------------------------------------------------
     function ConclusionPage() {
       return (
-        <motion.div initial={{opacity:0, y: 20}} animate={{opacity:1, y: 0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-4xl mx-auto w-full">
+        <MDiv initial={{opacity:0, y: 20}} animate={{opacity:1, y: 0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-4xl mx-auto w-full">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-emerald-950 mb-6">Tổng Kết Hành Trình</h1>
             <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full"></div>
@@ -601,7 +594,7 @@
 
           <div className="bg-white p-8 md:p-14 rounded-3xl shadow-xl border border-neutral-100 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-600"></div>
-            <Quote className="absolute top-10 left-10 w-24 h-24 text-emerald-50 opacity-50 pointer-events-none" />
+            <Icons.Quote width="96" height="96" className="absolute top-10 left-10 text-emerald-50 opacity-50 pointer-events-none" />
             
             <div className="relative z-10">
               <h2 className="text-2xl md:text-3xl font-bold text-emerald-900 text-center mb-12 leading-relaxed italic px-4">
@@ -624,13 +617,10 @@
               </div>
             </div>
           </div>
-        </motion.div>
+        </MDiv>
       )
     }
 
-    // ----------------------------------------------------
-    // MAIN APP ENTRY
-    // ----------------------------------------------------
     function App() {
       const [currentPage, setCurrentPage] = useState('Home');
 
@@ -638,11 +628,19 @@
         <div className="min-h-screen bg-[#F8FAF9] text-neutral-900 font-sans antialiased flex flex-col">
           <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} />
           <main className="flex-1">
-            <AnimatePresence mode="wait">
-              {currentPage === 'Home' && <HomePage key="home" />}
-              {currentPage === 'Projects' && <ProjectsPage key="projects" />}
-              {currentPage === 'Conclusion' && <ConclusionPage key="conclusion" />}
-            </AnimatePresence>
+            {AnimatePresence ? (
+              <AnimatePresence mode="wait">
+                {currentPage === 'Home' && <HomePage key="home" />}
+                {currentPage === 'Projects' && <ProjectsPage key="projects" />}
+                {currentPage === 'Conclusion' && <ConclusionPage key="conclusion" />}
+              </AnimatePresence>
+            ) : (
+              <div className="fade-in">
+                {currentPage === 'Home' && <HomePage key="home" />}
+                {currentPage === 'Projects' && <ProjectsPage key="projects" />}
+                {currentPage === 'Conclusion' && <ConclusionPage key="conclusion" />}
+              </div>
+            )}
           </main>
           
           <footer className="py-8 text-center text-neutral-500 text-sm border-t border-neutral-200 mt-auto bg-white">
