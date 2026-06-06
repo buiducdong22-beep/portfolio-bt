@@ -283,8 +283,8 @@
 
       return (
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none w-full h-full bg-neutral-50 lg:bg-transparent">
-          {/* A soft gradient overlay to make text pop while keeping the video visible */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent z-10"></div>
+          {/* A stronger gradient overlay to ensure text has high contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-white/10 z-10"></div>
           <video 
             ref={videoRef}
             src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260601_110537_3a579fa0-7bbc-4d94-9d25-0e816c7840f5.mp4"
@@ -326,25 +326,25 @@
               className="mt-6 max-w-5xl"
             >
               <div className="mb-10 max-w-3xl">
-                <p className="text-xl leading-relaxed text-gray-800 font-medium mb-4">
+                <p className="text-[22px] leading-relaxed text-neutral-900 font-semibold mb-4 drop-shadow-sm">
                   Chào bạn, mình là Bùi Đức Đồng, sinh viên chuyên ngành Thiết kế Đồ họa tại Trường Đại học Công nghệ (UET - VNU, Hà Nội).
                 </p>
-                <p className="text-[17px] leading-relaxed text-gray-600">
+                <p className="text-[18px] leading-relaxed text-neutral-800 font-medium drop-shadow-sm">
                   Trong quá trình theo đuổi con đường nghệ thuật thị giác, sự quan tâm và đam mê lớn nhất của tôi tập trung vào việc nghiên cứu sự giao thoa giữa các nguyên lý thiết kế nền tảng (như tâm lý học Gestalt, hệ thống lưới - Grid System) và các công cụ công nghệ số hiện đại.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-card p-8 rounded-[2rem] hover:shadow-xl hover:bg-white/90 transition-all duration-500 transform hover:-translate-y-1">
+                <div className="glass-card p-8 rounded-[2rem] hover:shadow-xl hover:bg-white/95 transition-all duration-500 transform hover:-translate-y-1 border-white/80 shadow-lg shadow-black/5">
                   <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-primary"><TargetIcon /> Mục tiêu học tập</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px]">
+                  <p className="text-neutral-800 font-medium leading-relaxed text-[15px]">
                     Hệ thống hóa luồng công việc (workflow) và làm chủ hoàn toàn các công cụ phần mềm chuyên dụng, đồng thời tích hợp linh hoạt Trí tuệ nhân tạo (AI) vào quy trình sáng tạo để gia tốc quá trình nghiên cứu ý tưởng mà không làm mất đi tư duy nghệ thuật nguyên bản. Hướng tới trở thành chuyên gia thiết kế đồ họa kỹ thuật số.
                   </p>
                 </div>
                 
-                <div className="glass-card p-8 rounded-[2rem] hover:shadow-xl hover:bg-white/90 transition-all duration-500 transform hover:-translate-y-1">
+                <div className="glass-card p-8 rounded-[2rem] hover:shadow-xl hover:bg-white/95 transition-all duration-500 transform hover:-translate-y-1 border-white/80 shadow-lg shadow-black/5">
                   <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-primary"><FileCheckIcon /> Mục tiêu Portfolio</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px]">
+                  <p className="text-neutral-800 font-medium leading-relaxed text-[15px]">
                     Cốt lõi là "Hệ thống hóa năng lực và minh chứng trực quan các kỹ năng số đã tích lũy". Đóng vai trò như một kho lưu trữ học thuật chuyên nghiệp, giúp đánh giá lại sự trưởng thành trong tư duy công nghệ, đồng thời tối ưu hóa việc chia sẻ đồ án thực tiễn đến cộng đồng.
                   </p>
                 </div>
@@ -450,16 +450,16 @@
                     {project.topic}
                   </div>
                   
-                  <div className="flex flex-col gap-6 text-gray-700">
+                  <div className="flex flex-col gap-6 text-neutral-800">
                     <div>
                       <strong className="flex items-center gap-2 text-primary mb-2 text-base"><TargetIcon /> Mục tiêu:</strong>
-                      <p className="text-[15px] leading-relaxed pl-7 text-gray-600">{project.objective}</p>
+                      <p className="text-[15px] leading-relaxed pl-7 font-medium text-neutral-700">{project.objective}</p>
                     </div>
                     <div>
                       <strong className="flex items-center gap-2 text-primary mb-2 text-base"><ActivityIcon /> Tóm tắt quá trình:</strong>
-                      <p className="text-[15px] leading-relaxed pl-7 text-gray-600">{project.summary}</p>
+                      <p className="text-[15px] leading-relaxed pl-7 font-medium text-neutral-700">{project.summary}</p>
                     </div>
-                    <div className="bg-primary/[0.03] p-5 rounded-2xl border border-primary/10 mt-2 transition-colors group-hover:bg-accent/5 group-hover:border-accent/20">
+                    <div className="bg-primary/[0.04] p-5 rounded-2xl border border-primary/15 mt-2 transition-colors group-hover:bg-accent/10 group-hover:border-accent/30">
                       <strong className="flex items-center gap-2 text-primary mb-3 text-sm"><FileCheckIcon /> Minh chứng đính kèm:</strong>
                       <a 
                         href={project.link} 
