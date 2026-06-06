@@ -1,653 +1,479 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digital Portfolio - Trang</title>
+  <title>Bùi Đức Đồng - Portfolio</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --font-sans: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      scroll-behavior: smooth;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .animate-blink { 
+      animation: blink 1s step-end infinite; 
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+  </style>
+  
   <script>
     tailwind.config = {
       theme: {
-        extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } }
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1C2E1E',
+            accent: '#4D6D47',
+            surface: '#FAFBF9',
+          }
+        }
       }
     }
   </script>
-  <style>
-    body { background-color: #F8FAF9; }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
 
   <!-- React & ReactDOM UMD -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
   
   <!-- Framer Motion UMD -->
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-
-  <!-- Babel -->
+  
+  <!-- Babel Standalone to compile JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
+<body class="bg-surface text-primary antialiased selection:bg-primary selection:text-white">
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
     const { createRoot } = ReactDOM;
-    const { motion, AnimatePresence } = window.Motion || window.FramerMotion || {}; 
+    const { motion, AnimatePresence } = window.Motion;
 
-    // Safe motion components in case CDN fails
-    const MDiv = motion ? motion.div : (props) => <div className={`${props.className || ''} fade-in`} {...props}>{props.children}</div>;
+    // --- ICON COMPONENTS ---
+    const TargetIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    );
+    const ActivityIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    );
+    const FileCheckIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+    );
 
-    // Inline SVGs replacing Lucide React for 100% stability
-    const Icons = {
-      FolderTree: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M13 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5l2 3h8a2 2 0 0 1 2 2v2"/><path d="M13 14v8"/><path d="M13 14h6"/><path d="M19 14v4"/></svg>,
-      Search: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
-      Users: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-      Sparkles: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>,
-      ShieldCheck: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-2 7-2 2.5 0 5 1 7 2a1 1 0 0 1 1 1v7Z"/><path d="m9 12 2 2 4-4"/></svg>,
-      ChevronRight: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>,
-      Quote: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.99c.99 0 1 .98 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>,
-      Menu: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
-      X: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-    };
+    // --- TYPEWRITER HOOK ---
+    function useTypewriter(text, speed = 40, startDelay = 500) {
+      const [displayed, setDisplayed] = useState('');
+      const [done, setDone] = useState(false);
 
-    function Navbar({ currentPage, setCurrentPage }) {
+      useEffect(() => {
+        let timeout;
+        let interval;
+
+        timeout = setTimeout(() => {
+          let i = 0;
+          interval = setInterval(() => {
+            setDisplayed((prev) => {
+              const nextStr = text.slice(0, i + 1);
+              i++;
+              if (i >= text.length) {
+                clearInterval(interval);
+                setDone(true);
+              }
+              return nextStr;
+            });
+          }, speed);
+        }, startDelay);
+
+        return () => {
+          clearTimeout(timeout);
+          clearInterval(interval);
+        };
+      }, [text, speed, startDelay]);
+
+      return { displayed, done };
+    }
+
+    // --- COMPONENTS ---
+    function Navbar() {
       const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-      const navItems = [
-        { id: 'Home', label: 'Trang chủ' },
-        { id: 'Projects', label: 'Dự án' },
-        { id: 'Conclusion', label: 'Tổng kết' }
+      const navLinks = [
+        { id: 'home', label: 'Giới thiệu' },
+        { id: 'projects', label: 'Dự án' },
+        { id: 'summary', label: 'Tổng kết' }
       ];
 
-      const handleNav = (id) => {
-        setCurrentPage(id);
-        setIsMobileMenuOpen(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
-
       return (
-        <header className="fixed top-0 inset-x-0 z-50 px-6 py-4 flex flex-row justify-between items-center bg-[#F8FAF9]/90 backdrop-blur-md border-b border-neutral-200 shadow-sm">
-          <div className="flex flex-row items-center cursor-pointer" onClick={() => handleNav('Home')}>
-            <span className="text-2xl font-bold text-emerald-950 tracking-tight">Trang<span className="text-emerald-600">.</span>Portfolio</span>
-          </div>
-
-          <nav className="hidden md:flex flex-row text-[16px] font-medium text-neutral-800 items-center">
-            {navItems.map((item) => (
-              <React.Fragment key={item.id}>
-                <button 
-                  onClick={() => handleNav(item.id)} 
-                  className={`transition-colors px-5 py-2.5 rounded-full mx-1 ${currentPage === item.id ? 'bg-emerald-600 text-white shadow-md' : 'hover:bg-emerald-50 hover:text-emerald-700'}`}
-                >
-                  {item.label}
-                </button>
-              </React.Fragment>
-            ))}
-          </nav>
-
-          <button 
-            className="md:hidden text-neutral-800 p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <Icons.X /> : <Icons.Menu />}
-          </button>
-
-          {isMobileMenuOpen && (
-            <div className="absolute top-full left-0 right-0 bg-white border-b border-neutral-200 shadow-lg flex flex-col p-4 md:hidden fade-in">
-              {navItems.map((item) => (
-                <button 
-                  key={item.id}
-                  onClick={() => handleNav(item.id)}
-                  className={`text-left text-lg font-medium p-4 rounded-xl mb-2 ${currentPage === item.id ? 'bg-emerald-50 text-emerald-700' : 'text-neutral-700'}`}
-                >
-                  {item.label}
-                </button>
-              ))}
+        <React.Fragment>
+          <header className="fixed top-0 inset-x-0 z-50 px-5 sm:px-8 py-4 sm:py-5 flex flex-row justify-between items-center glass-card border-b border-white/20">
+            <div className="flex flex-row gap-2 items-center">
+              <span className="text-[20px] sm:text-[24px] tracking-tight font-semibold select-none">
+                Đức Đồng&reg;
+              </span>
             </div>
-          )}
-        </header>
+
+            <nav className="hidden md:flex flex-row items-center text-[17px] font-medium gap-8">
+              {navLinks.map((link) => (
+                <a key={link.id} href={`#${link.id}`} className="hover:text-accent transition-colors">{link.label}</a>
+              ))}
+            </nav>
+
+            <a href="#projects" className="hidden md:block text-[17px] font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-accent transition-colors">
+              Xem dự án
+            </a>
+
+            <button 
+              className="md:hidden flex flex-col justify-center items-center w-8 h-8 z-30 relative"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              <span className={`absolute w-6 h-[2px] bg-primary transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-0' : '-translate-y-[7px]'}`}></span>
+              <span className={`absolute w-6 h-[2px] bg-primary transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+              <span className={`absolute w-6 h-[2px] bg-primary transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 translate-y-0' : 'translate-y-[7px]'}`}></span>
+            </button>
+          </header>
+
+          <div className={`fixed inset-0 z-[40] bg-white/95 backdrop-blur-md transition-opacity duration-300 md:hidden flex flex-col items-center justify-center ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className="flex flex-col items-center gap-8">
+               {navLinks.map((link) => (
+                 <a key={link.id} href={`#${link.id}`} className="text-2xl font-semibold hover:text-accent transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{link.label}</a>
+               ))}
+            </div>
+          </div>
+        </React.Fragment>
       );
     }
 
-    function HomePage() {
+    function BackgroundVideo() {
+      const videoRef = useRef(null);
+      const targetTimeRef = useRef(0);
+      const currentLerpTimeRef = useRef(0);
+      const isSeekingRef = useRef(false);
+      const animationFrameId = useRef(null);
+      
+      useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const lerp = (start, end, amount) => (1 - amount) * start + amount * end;
+
+        const renderLoop = () => {
+          currentLerpTimeRef.current = lerp(currentLerpTimeRef.current, targetTimeRef.current, 0.035);
+          if (!isSeekingRef.current && Math.abs(video.currentTime - currentLerpTimeRef.current) > 0.01) {
+            isSeekingRef.current = true;
+            video.currentTime = currentLerpTimeRef.current;
+          }
+          animationFrameId.current = requestAnimationFrame(renderLoop);
+        };
+
+        animationFrameId.current = requestAnimationFrame(renderLoop);
+
+        const handleMouseMove = (e) => {
+          if (window.innerWidth < 1024) return;
+          const rect = document.getElementById('home').getBoundingClientRect();
+          // Only scrub if mouse is within the hero section to prevent weird behavior down the page
+          if (e.clientY > rect.bottom) return;
+
+          const percentage = e.clientX / window.innerWidth;
+          if (video.duration) {
+            let newTarget = percentage * video.duration;
+            targetTimeRef.current = Math.max(0, Math.min(newTarget, video.duration));
+          }
+        };
+
+        const handleSeeked = () => {
+          isSeekingRef.current = false;
+        };
+
+        const checkMobile = () => {
+          if (window.innerWidth < 1024) {
+            video.autoplay = true;
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('resize', checkMobile);
+        video.addEventListener('seeked', handleSeeked);
+        
+        checkMobile();
+
+        return () => {
+          cancelAnimationFrame(animationFrameId.current);
+          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('resize', checkMobile);
+          video.removeEventListener('seeked', handleSeeked);
+        };
+      }, []);
+
       return (
-        <MDiv initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
-          <div className="w-full h-64 md:h-80 bg-gradient-to-r from-emerald-900 to-teal-800 rounded-3xl mb-12 flex items-center justify-center overflow-hidden relative shadow-xl">
-             <MDiv animate={{scale:[1, 1.05, 1]}} transition={{duration:10, repeat: Infinity}} className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
-             <div className="relative z-10 text-center px-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-4">Digital Portfolio</h1>
-                <p className="text-emerald-100 text-lg md:text-xl font-medium max-w-2xl mx-auto">Hành trình khám phá và phát triển năng lực ứng dụng Công nghệ số trong Thiết kế</p>
-             </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-10">
-            <div className="w-full md:w-1/3 shrink-0">
-              <div className="bg-white rounded-3xl overflow-hidden aspect-[3/4] shadow-lg border border-neutral-200 relative group">
-                 <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1288&auto=format&fit=crop" alt="Portrait" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                   <h2 className="text-white text-3xl font-bold">Trang</h2>
-                 </div>
-              </div>
-            </div>
-
-            <div className="w-full md:w-2/3 flex flex-col gap-10">
-              <section>
-                <h2 className="text-2xl font-bold text-emerald-950 mb-5 flex items-center gap-3">
-                  <span className="w-8 h-[3px] bg-emerald-500 rounded-full"></span>
-                  GIỚI THIỆU BẢN THÂN
-                </h2>
-                <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm">
-                  <p className="text-lg mb-4 flex items-start gap-2"><strong className="text-emerald-900 min-w-36">Họ và tên:</strong> <span className="text-neutral-700">Trang</span></p>
-                  <p className="text-lg mb-4 flex items-start gap-2"><strong className="text-emerald-900 min-w-36">Chuyên ngành:</strong> <span className="text-neutral-700">Đồ họa / Thiết kế Đồ họa</span></p>
-                  <p className="text-lg leading-relaxed flex items-start gap-2"><strong className="text-emerald-900 min-w-36">Sở thích:</strong> <span className="text-neutral-700">Khám phá nghệ thuật thị giác, tìm hiểu các giải pháp công nghệ mới, tối ưu hóa quy trình làm việc sáng tạo để nâng cao hiệu suất cá nhân.</span></p>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-bold text-emerald-950 mb-5 flex items-center gap-3">
-                  <span className="w-8 h-[3px] bg-emerald-500 rounded-full"></span>
-                  MỤC TIÊU HỌC TẬP & ĐỊNH HƯỚNG PHÁT TRIỂN
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Icons.Sparkles width="64" height="64" /></div>
-                    <h3 className="text-xl font-bold text-emerald-900 mb-3 relative z-10">Mục tiêu ngắn hạn</h3>
-                    <p className="text-neutral-700 leading-relaxed relative z-10">Làm chủ các công cụ công nghệ số, ứng dụng thành thạo Trí tuệ nhân tạo (AI) như một trợ lý đắc lực để tối ưu hóa thời gian nghiên cứu và hiện thực hóa các ý tưởng thiết kế phức tạp.</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Icons.Sparkles width="64" height="64" /></div>
-                    <h3 className="text-xl font-bold text-emerald-900 mb-3 relative z-10">Định hướng dài hạn</h3>
-                    <p className="text-neutral-700 leading-relaxed relative z-10">Trở thành một Nhà thiết kế/Kiến trúc sư thị giác chuyên nghiệp, có khả năng kết hợp nhuần nhuyễn giữa tư duy mỹ thuật truyền thống và công nghệ số hiện đại để tạo ra các giải pháp thiết kế có giá trị thực tiễn cao cho xã hội.</p>
-                  </div>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-bold text-emerald-950 mb-5 flex items-center gap-3">
-                  <span className="w-8 h-[3px] bg-emerald-500 rounded-full"></span>
-                  MỤC TIÊU CỦA PORTFOLIO NÀY
-                </h2>
-                <ul className="space-y-4">
-                  <li className="flex gap-5 p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-700 font-bold text-xl">1</div>
-                    <div>
-                      <h4 className="font-bold text-emerald-900 text-lg mb-1">Hệ thống hóa năng lực</h4>
-                      <p className="text-neutral-600 leading-relaxed">Lưu trữ, tổng hợp và minh chứng một cách trực quan toàn bộ kết quả học tập và các kỹ năng số đã được tích lũy thông qua môn học.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-5 p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-700 font-bold text-xl">2</div>
-                    <div>
-                      <h4 className="font-bold text-emerald-900 text-lg mb-1">Khẳng định tư duy công nghệ</h4>
-                      <p className="text-neutral-600 leading-relaxed">Thể hiện khả năng quản lý dữ liệu, tư duy phản biện, kỹ năng tương tác hiệu quả với AI và làm việc nhóm trong môi trường số.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-5 p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-700 font-bold text-xl">3</div>
-                    <div>
-                      <h4 className="font-bold text-emerald-900 text-lg mb-1">Trải nghiệm người dùng</h4>
-                      <p className="text-neutral-600 leading-relaxed">Thiết kế một không gian lưu trữ trực tuyến khoa học, tối giản và chuyên nghiệp, giúp người xem dễ dàng tiếp cận và đánh giá quy trình làm việc.</p>
-                    </div>
-                  </li>
-                </ul>
-              </section>
-            </div>
-          </div>
-        </MDiv>
-      )
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none w-full h-full bg-neutral-50 lg:bg-transparent">
+          <div className="absolute inset-0 bg-white/40 z-10"></div>
+          <video 
+            ref={videoRef}
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260601_110537_3a579fa0-7bbc-4d94-9d25-0e816c7840f5.mp4"
+            muted 
+            playsInline 
+            preload="auto"
+            className="w-full h-full object-cover object-right lg:object-right-bottom"
+          />
+        </div>
+      );
     }
 
-    function ProjectsPage() {
-      const [activeTab, setActiveTab] = useState(1);
+    function Hero() {
+      const { displayed, done } = useTypewriter("Giao Thoa Giữa\nNghệ Thuật Thị Giác\n& Công Nghệ Số");
 
-      const projects = [
+      return (
+        <section id="home" className="relative min-h-screen flex flex-col pt-24 pb-16 overflow-hidden">
+          <BackgroundVideo />
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 flex-1 flex flex-col justify-center">
+            
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+              <span className="inline-block px-4 py-1.5 mb-6 rounded-full border border-primary/20 text-sm font-medium tracking-wide bg-white/50 backdrop-blur-sm">
+                Bùi Đức Đồng • ID3 • K70 Thiết kế Đồ họa
+              </span>
+              <h1 className="text-5xl md:text-6xl lg:text-[72px] font-bold tracking-tight leading-[1.1] mb-8 max-w-4xl whitespace-pre-wrap">
+                {displayed}
+                {!done && <span className="inline-block w-[3px] h-[0.9em] bg-primary align-middle ml-[4px] animate-blink" />}
+              </h1>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 max-w-6xl mt-8">
+              <div>
+                <p className="text-lg leading-relaxed text-gray-800 font-medium">
+                  Chào bạn, mình là Bùi Đức Đồng, sinh viên chuyên ngành Thiết kế Đồ họa tại Trường Đại học Công nghệ (UET - VNU, Hà Nội).
+                </p>
+                <p className="text-lg leading-relaxed text-gray-700 mt-4">
+                  Trong quá trình theo đuổi con đường nghệ thuật thị giác, sự quan tâm và đam mê lớn nhất của tôi tập trung vào việc nghiên cứu sự giao thoa giữa các nguyên lý thiết kế nền tảng (như tâm lý học Gestalt, hệ thống lưới - Grid System) và các công cụ công nghệ số hiện đại.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-8">
+                <div className="glass-card p-6 md:p-8 rounded-3xl shadow-sm">
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2"><TargetIcon /> Mục tiêu học tập & Phát triển</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                    Hệ thống hóa luồng công việc (workflow) và làm chủ hoàn toàn các công cụ phần mềm chuyên dụng, đồng thời tích hợp linh hoạt Trí tuệ nhân tạo (AI) vào quy trình sáng tạo để gia tốc quá trình nghiên cứu ý tưởng mà không làm mất đi tư duy nghệ thuật nguyên bản. Hướng tới trở thành chuyên gia thiết kế đồ họa kỹ thuật số mang tính hệ thống và logic.
+                  </p>
+                </div>
+                
+                <div className="glass-card p-6 md:p-8 rounded-3xl shadow-sm">
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2"><FileCheckIcon /> Mục tiêu Portfolio</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                    Cốt lõi là "Hệ thống hóa năng lực và minh chứng trực quan các kỹ năng số đã tích lũy". Đóng vai trò như một kho lưu trữ học thuật chuyên nghiệp, giúp đánh giá lại sự trưởng thành trong tư duy công nghệ, đồng thời tối ưu hóa việc chia sẻ đồ án thực tiễn đến cộng đồng.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      );
+    }
+
+    function Projects() {
+      const projectsData = [
         {
           id: 1,
-          title: "QUẢN LÝ TỆP VÀ THƯ MỤC",
-          icon: <Icons.FolderTree width="20" height="20" />,
-          content: (
-            <div className="space-y-8 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Search width="20" height="20"/></div> 1. Minh chứng cấu trúc thư mục</h3>
-                <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic shadow-inner">
-                  (Chèn ảnh chụp màn hình sơ đồ cây thư mục máy tính của bạn tại đây)
-                </div>
-              </div>
-              <div className="w-full h-px bg-neutral-100"></div>
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-base">2</div> Mô tả quy tắc tổ chức dữ liệu</h3>
-                <p className="text-neutral-700 mb-5 leading-relaxed text-lg">Để tối ưu hóa hiệu suất học tập và làm việc, tôi đã xây dựng hệ thống quản lý dữ liệu cá nhân theo nguyên lý <strong>Cấu trúc cây phân cấp (Hierarchical Tree Structure)</strong> kết hợp với <strong>Quy tắc đặt tên chuẩn hóa (Naming Convention)</strong>.</p>
-                
-                <div className="bg-white p-6 rounded-2xl mb-6 border border-emerald-100 shadow-sm relative overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
-                  <p className="mb-4 text-neutral-700"><strong className="text-emerald-900">Quy tắc phân cấp:</strong> Thư mục gốc được chia theo <em>Năm học &rarr; Học kỳ &rarr; Mã môn học &rarr; [01_Tai_lieu_hoc_tap], [02_Bai_tap_ca_nhan], [03_Bai_tap_nhom], [04_San_pham_cuoi_cung]</em>.</p>
-                  <p className="mb-4 text-neutral-700"><strong className="text-emerald-900">Quy tắc đặt tên file:</strong> Áp dụng công thức <code>[MãMôn]_[TênNhiệmVụ]_[HạngMục]_[NgàyTháng]_[PhiênBản]</code>.</p>
-                  <div className="p-3 bg-neutral-50 rounded-xl inline-block border border-neutral-200">
-                    <strong className="text-emerald-900 mr-2">Ví dụ cụ thể:</strong> 
-                    <code className="text-emerald-700 font-mono">CNS_BT1_CayThuMuc_060626_V1.0.png</code>
-                  </div>
-                </div>
-                
-                <h4 className="font-bold text-emerald-900 mb-2">Chiều sâu phân tích:</h4>
-                <p className="text-neutral-700 leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-50">Việc tổ chức dữ liệu logic này không chỉ giúp giảm thiểu thời gian tìm kiếm tài nguyên xuống dưới 5 giây, mà còn ngăn chặn tình trạng thất lạc dữ liệu hoặc ghi đè nhầm các phiên bản cũ. Đây là nền tảng cốt lõi của tư duy hệ thống, giúp quy trình làm việc số luôn liền mạch, sẵn sàng cho việc lưu trữ và chia sẻ tài nguyên trong môi trường làm việc cộng tác.</p>
-              </div>
-            </div>
-          )
+          title: "Bài tập 1: Thao tác cơ bản với tệp tin và thư mục",
+          topic: "Quản trị và tối ưu hóa hệ thống dữ liệu dự án đồ họa kỹ thuật số.",
+          objective: "Quản lý, tổ chức và thao tác chuẩn xác với hệ thống dữ liệu thiết kế có dung lượng lớn trên hệ điều hành, đảm bảo không thất thoát source file.",
+          summary: "Tiến hành hoàn thành 100% các yêu cầu tạo, đổi tên, sao chép, di chuyển và xóa tệp tin một cách nhanh chóng, chính xác. Cụ thể, hệ thống cây thư mục được xây dựng logic từ thư mục gốc đến các thư mục con phân loại theo định dạng (Vector, Raster, Typography). Thực hiện chính xác các thao tác di chuyển tệp, xóa vào thùng rác và khôi phục dữ liệu an toàn.",
+          evidence: "Báo cáo PDF đính kèm chứa trên 5 ảnh chụp màn hình chất lượng cao, minh chứng rõ ràng tiến trình quản lý tệp và khôi phục dữ liệu đồ họa."
         },
         {
           id: 2,
-          title: "TÌM KIẾM VÀ ĐÁNH GIÁ THÔNG TIN HỌC THUẬT",
-          icon: <Icons.Search width="20" height="20" />,
-          content: (
-            <div className="space-y-8 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Search width="20" height="20"/></div> 1. Minh chứng chiến lược tìm kiếm</h3>
-                <div className="w-full h-48 bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic mb-5 shadow-inner">
-                  (Chèn ảnh chụp màn hình thanh tìm kiếm Google Scholar thể hiện câu lệnh nâng cao)
-                </div>
-                <div className="bg-neutral-900 text-emerald-400 p-5 rounded-2xl font-mono text-sm overflow-x-auto shadow-md">
-                  <span className="text-neutral-500 mb-2 block">// Cú pháp tìm kiếm đã sử dụng:</span>
-                  "Digital Portfolio" AND "Graphic Design" AND (assessment OR rubric) site:.edu filetype:pdf
-                </div>
-              </div>
-              
-              <div className="w-full h-px bg-neutral-100"></div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-base">2</div> Bảng phân tích và đánh giá nguồn tin (CRAAP)</h3>
-                <div className="overflow-x-auto rounded-2xl border border-neutral-200 shadow-sm">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-emerald-50 text-emerald-900">
-                      <tr>
-                        <th className="p-4 border-b border-neutral-200 w-1/5 whitespace-nowrap">Tiêu chí đánh giá</th>
-                        <th className="p-4 border-b border-neutral-200 w-2/5">Nguồn tài liệu tìm được<br/><span className="text-xs font-normal opacity-70">(File PDF học thuật từ nguồn .edu)</span></th>
-                        <th className="p-4 border-b border-neutral-200 w-2/5">Phân tích chiều sâu</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-neutral-100">
-                      <tr className="hover:bg-neutral-50 transition-colors">
-                        <td className="p-4 font-bold text-emerald-900">Tính cập nhật<br/><span className="text-sm font-normal text-neutral-500">(Currency)</span></td>
-                        <td className="p-4 text-neutral-700">Xuất bản trong những năm gần đây, phù hợp với sự phát triển của công nghệ số.</td>
-                        <td className="p-4 text-neutral-700">Đảm bảo các tiêu chuẩn về portfolio không bị lạc hậu so với xu hướng công nghiệp hiện tại.</td>
-                      </tr>
-                      <tr className="bg-neutral-50/50 hover:bg-neutral-50 transition-colors">
-                        <td className="p-4 font-bold text-emerald-900">Độ phù hợp<br/><span className="text-sm font-normal text-neutral-500">(Relevance)</span></td>
-                        <td className="p-4 text-neutral-700">Nội dung tập trung chính xác vào cách xây dựng và đánh giá portfolio cho sinh viên khối ngành nghệ thuật/thiết kế.</td>
-                        <td className="p-4 text-neutral-700">Đáp ứng trực tiếp nhu cầu nghiên cứu cấu trúc layout và các tiêu chí chấm điểm khắt khe.</td>
-                      </tr>
-                      <tr className="hover:bg-neutral-50 transition-colors">
-                        <td className="p-4 font-bold text-emerald-900">Thẩm quyền<br/><span className="text-sm font-normal text-neutral-500">(Authority)</span></td>
-                        <td className="p-4 text-neutral-700">Tác giả là các giáo sư đầu ngành, được phát hành bởi nhà xuất bản của một trường đại học uy tín tại Mỹ.</td>
-                        <td className="p-4 text-neutral-700">Nguồn thông tin có trọng lượng khoa học lớn, luật dẫn nguồn rõ ràng, có chỉ số trích dẫn (Citations) cao.</td>
-                      </tr>
-                      <tr className="bg-neutral-50/50 hover:bg-neutral-50 transition-colors">
-                        <td className="p-4 font-bold text-emerald-900">Tính chính xác<br/><span className="text-sm font-normal text-neutral-500">(Accuracy)</span></td>
-                        <td className="p-4 text-neutral-700">Dữ liệu nghiên cứu rõ ràng, có đối chứng, không chứa lỗi chính tả hay định kiến cá nhân.</td>
-                        <td className="p-4 text-neutral-700">Thông tin đã qua phản biện kín (Peer-reviewed), đảm bảo tính khách quan và an toàn khi sử dụng làm căn cứ.</td>
-                      </tr>
-                      <tr className="hover:bg-neutral-50 transition-colors">
-                        <td className="p-4 font-bold text-emerald-900">Mục đích<br/><span className="text-sm font-normal text-neutral-500">(Purpose)</span></td>
-                        <td className="p-4 text-neutral-700">Phục vụ giáo dục và nghiên cứu khoa học, phi lợi nhuận.</td>
-                        <td className="p-4 text-neutral-700">Loại bỏ hoàn toàn các yếu tố quảng cáo, thao túng thông tin hoặc định hướng thương mại.</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )
+          title: "Bài tập 2: Tìm kiếm và đánh giá thông tin học thuật",
+          topic: "Ứng dụng tâm lý học Gestalt và phong cách Art Deco trong thiết kế nhận diện thương hiệu.",
+          objective: "Phát triển kỹ năng tra cứu chuyên sâu bằng toán tử nâng cao và thẩm định độ tin cậy của các nguồn tài liệu học thuật phục vụ thiết kế đồ họa.",
+          summary: "Đã tiến hành khai thác từ đủ 4 loại nguồn dữ liệu cốt lõi (Google Scholar, CSDL thư viện Đại học, tạp chí khoa học, sách chuyên khảo). Thu thập tổng cộng 12 tài liệu tham khảo, trong đó bao gồm 7 bài báo khoa học chất lượng cao. Tiến hành phân tích, đánh giá độ tin cậy rất chi tiết và có hệ thống (theo chuẩn CRAAP).",
+          evidence: "Báo cáo phân tích dài 4 trang với bảng tổng hợp khoa học và Danh mục tài liệu tham khảo được trích dẫn chính xác tuyệt đối theo định dạng Harvard."
         },
         {
           id: 3,
-          title: "VIẾT PROMPT HIỆU QUẢ",
-          icon: <Icons.ChevronRight width="20" height="20" />,
-          content: (
-            <div className="space-y-10 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.ChevronRight width="20" height="20"/></div> So sánh hiệu quả và Cơ chế hoạt động của AI</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-2xl border border-rose-200 overflow-hidden shadow-sm flex flex-col h-full">
-                    <div className="bg-rose-50 p-4 font-bold text-rose-900 border-b border-rose-100 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-rose-500"></div> Prompt ban đầu (Sơ khai)
-                    </div>
-                    <div className="p-6 space-y-6 flex-1 flex flex-col">
-                      <div>
-                        <div className="text-xs font-bold text-rose-700 mb-2 uppercase tracking-wider">Nội dung câu lệnh</div>
-                        <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100 text-neutral-800 font-mono text-sm">"Hãy viết cho tôi bài luận tổng kết môn Nhập môn Công nghệ số."</div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-rose-700 mb-2 uppercase tracking-wider">Kết quả đầu ra của AI</div>
-                        <div className="text-neutral-600 bg-white p-4 border border-rose-100 rounded-xl leading-relaxed">Trả về một bài viết chung chung, lý thuyết suông, thiếu liên hệ thực tế cá nhân, cấu trúc không rõ ràng và không bám sát vào rubric chấm điểm cụ thể của nhà trường.</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm flex flex-col h-full relative">
-                    <div className="absolute top-0 right-0 p-3"><Icons.Sparkles width="24" height="24" className="text-emerald-400 opacity-50"/></div>
-                    <div className="bg-emerald-50 p-4 font-bold text-emerald-900 border-b border-emerald-100 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Prompt cải tiến (Prompt Engineering)
-                    </div>
-                    <div className="p-6 space-y-6 flex-1 flex flex-col">
-                      <div>
-                        <div className="text-xs font-bold text-emerald-700 mb-2 uppercase tracking-wider">Nội dung câu lệnh</div>
-                        <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 text-neutral-800 text-sm leading-relaxed font-mono">
-                          "Bạn là một chuyên gia cố vấn học thuật cao cấp. Hãy đóng vai trò là người định hướng để giúp tôi viết một bài luận tổng kết môn 'Nhập môn Công nghệ số và Ứng dụng Trí tuệ nhân tạo'.<br/><br/>
-                          <strong>Bối cảnh:</strong> Tôi là Trang, sinh viên chuyên ngành Thiết kế Đồ họa.<br/>
-                          <strong>Mục tiêu:</strong> Viết phần tổng kết cho Portfolio cá nhân đạt mức Xuất sắc theo rubric (yêu cầu phải thể hiện sự trưởng thành, bài học kinh nghiệm, và cách ứng dụng kỹ năng số vào chuyên ngành thiết kế trong tương lai).<br/>
-                          <strong>Định dạng đầu ra:</strong> Bài viết dài khoảng 300 từ, hành văn sâu sắc, chuyên nghiệp, sử dụng cấu trúc lập luận chặt chẽ."
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-emerald-700 mb-2 uppercase tracking-wider">Kết quả đầu ra của AI</div>
-                        <div className="text-emerald-900 bg-emerald-50/30 p-4 border border-emerald-100 rounded-xl leading-relaxed font-medium">Tạo ra một bài luận có chiều sâu vượt trội, cá nhân hóa hoàn toàn cho sinh viên ngành thiết kế, phân tích mạch lạc các kỹ năng thu hoạch được và gắn kết chặt chẽ với định hướng nghề nghiệp tương lai.</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-neutral-900 text-white p-8 rounded-3xl border border-neutral-800 shadow-lg relative overflow-hidden">
-                <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-                  <Icons.Sparkles width="160" height="160" />
-                </div>
-                <h3 className="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-3">
-                  Phân tích chiều sâu về cơ chế hoạt động của AI
-                </h3>
-                <div className="text-neutral-300 leading-relaxed space-y-4 text-lg">
-                  <p>Sự khác biệt rõ rệt giữa hai kết quả nằm ở cách tối ưu hóa <strong className="text-white">Không gian ngữ cảnh (Context Window)</strong> và <strong className="text-white">Cơ chế chú ý (Attention Mechanism)</strong> của mô hình ngôn ngữ lớn (LLM). Khi sử dụng prompt sơ khai, AI phải tự suy diễn dữ liệu dựa trên xác suất chung, dẫn đến kết quả mơ hồ.</p>
-                  <p>Ngược lại, prompt cải tiến đã thiết lập một "khung tham chiếu" nghiêm ngặt thông qua việc định hình cụ thể: <strong className="text-emerald-300">Vai trò (Role), Bối cảnh (Context), Nhiệm vụ (Task), Giới hạn (Constraints)</strong> và <strong className="text-emerald-300">Định dạng (Output Style)</strong>. Điều này giúp AI tập trung các trọng số (weights) vào đúng vùng tri thức liên quan đến "thiết kế" và "rubric xuất sắc", loại bỏ hoàn toàn các phản hồi nhiễu, từ đó tạo ra văn bản có tính logic cao và đáp ứng chính xác mục đích học thuật.</p>
-                </div>
-              </div>
-            </div>
-          )
+          title: "Bài tập 3: Viết Prompt hiệu quả cho các tác vụ học tập",
+          topic: "Phân tích lịch sử trào lưu Avant-Garde & Xây dựng lưới (grid layout) cho poster.",
+          objective: "Làm chủ kỹ thuật Prompt Engineering để tương tác và tối ưu hóa sức mạnh của các mô hình ngôn ngữ lớn (LLM) trong quy trình thiết kế.",
+          summary: "Xây dựng 3 phiên bản prompt xuất sắc (Cơ bản - Cải tiến - Nâng cao) cho mỗi tác vụ. Phiên bản nâng cao áp dụng nhuần nhuyễn kỹ thuật Role prompting (Art Director) và Few-shot examples. Đưa ra các nhận định có giá trị, so sánh tinh tế khác biệt đầu ra, phân tích sâu sắc mối liên hệ giữa câu lệnh và chất lượng mỹ thuật của AI.",
+          evidence: "Báo cáo định dạng chuyên nghiệp, không mắc lỗi chính tả, chứa đầy đủ minh chứng thực nghiệm sâu sắc và bộ nguyên tắc viết prompt hiệu quả."
         },
         {
           id: 4,
-          title: "SỬ DỤNG CÔNG CỤ HỢP TÁC TRỰC TUYẾN",
-          icon: <Icons.Users width="20" height="20" />,
-          content: (
-            <div className="space-y-8 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Users width="20" height="20"/></div> 1. Minh chứng không gian làm việc nhóm</h3>
-                <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic mb-3 shadow-inner">
-                  (Chèn ảnh chụp màn hình giao diện quản lý dự án nhóm của bạn trên Trello hoặc Notion tại đây. Đảm bảo ảnh thể hiện rõ các cột tiến độ)
-                </div>
-              </div>
-              
-              <div className="w-full h-px bg-neutral-100"></div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-base">2</div> Mô tả phương thức phối hợp trực tuyến nâng cao</h3>
-                <p className="text-neutral-700 mb-6 leading-relaxed text-lg">Để quản lý dự án nhóm một cách toàn diện, chúng tôi đã triển khai không gian làm việc số trên nền tảng quản trị công việc chuyên nghiệp, áp dụng mô hình <strong className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Kanban</strong>.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                    <h4 className="font-bold text-emerald-900 mb-3 text-lg border-b border-emerald-100 pb-2">Tích hợp tính năng nâng cao</h4>
-                    <p className="text-neutral-600 leading-relaxed">Không chỉ dừng lại ở việc liệt kê danh sách đầu việc, chúng tôi tối ưu hóa quy trình bằng cách thiết lập <strong>Hạn chót (Due dates)</strong> tự động gửi thông báo nhắc nhở, sử dụng hệ thống <strong>Nhãn màu phân loại (Labels)</strong> theo mức độ ưu tiên (Khẩn cấp, Bình thường, Thấp), và gắn <strong>Người phụ trách (Assignees)</strong> rõ ràng cho từng nhiệm vụ từ khâu lên ý tưởng đến khâu kiểm duyệt cuối cùng.</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                    <h4 className="font-bold text-emerald-900 mb-3 text-lg border-b border-emerald-100 pb-2">Tối ưu hóa quy trình làm việc</h4>
-                    <p className="text-neutral-600 leading-relaxed">Giải pháp này loại bỏ hoàn toàn sự bất đối xứng thông tin thường gặp khi giao tiếp qua tin nhắn truyền thống. Mọi thành viên đều nắm bắt được bức tranh tổng thể của dự án theo thời gian thực (Real-time tracking), tự động hóa dòng công việc và tối ưu hóa tối đa năng suất làm việc nhóm, đảm bảo dự án luôn hoàn thành đúng tiến độ mà không bị chồng chéo nhiệm vụ.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
+          title: "Bài tập 4: Sử dụng công cụ hợp tác trực tuyến cho dự án nhóm",
+          topic: "Phối hợp thiết kế đồ họa và sản xuất video thuyết trình chuyên ngành.",
+          objective: "Quản trị luồng công việc (workflow), tổ chức tài nguyên và duy trì giao tiếp liền mạch trong môi trường làm việc nhóm kỹ thuật số.",
+          summary: "Triển khai đồng thời Canva Pro, Teamspace và Discord. Tối ưu hóa không gian làm việc bằng cách thiết lập nhãn dán, phân quyền truy cập bảo mật. Cập nhật tiến độ thường xuyên (>3 lần/tuần) và chủ động hỗ trợ kỹ thuật các thành viên. Phân tích sâu sắc 2 thách thức về đồng bộ hóa dữ liệu trực tuyến và giải pháp khắc phục.",
+          evidence: "Trên 8 ảnh chụp màn hình sắc nét thể hiện chi tiết quá trình tương tác, bình luận và quản lý phiên bản thiết kế trên các nền tảng đám mây."
         },
         {
           id: 5,
-          title: "SỬ DỤNG AI HỖ TRỢ SÁNG TẠO",
-          icon: <Icons.Sparkles width="20" height="20" />,
-          content: (
-            <div className="space-y-8 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.Sparkles width="20" height="20"/></div> 1. Trưng bày sản phẩm hoàn thiện</h3>
-                <div className="w-full aspect-video bg-neutral-100/50 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 italic shadow-inner">
-                  (Nhúng sản phẩm cuối cùng của bạn tại đây: File ảnh thiết kế chất lượng cao, link video, hoặc tài liệu số đã hoàn thiện)
-                </div>
-              </div>
-              
-              <div className="w-full h-px bg-neutral-100"></div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-emerald-900"><div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-base">2</div> Minh chứng quy trình phối hợp sáng tạo (Workflow)</h3>
-                <p className="text-neutral-700 mb-8 leading-relaxed text-lg">Sản phẩm này là kết quả của một quy trình cộng tác đồng sáng tạo chặt chẽ giữa tư duy định hướng của con người và năng lực thực thi của Trí tuệ nhân tạo:</p>
-                
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-3 mb-10 bg-emerald-950 text-emerald-100 p-6 rounded-2xl text-sm font-medium text-center shadow-lg relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                  <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Ý tưởng gốc]</div>
-                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
-                  <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Viết Prompt AI]</div>
-                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
-                  <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Sửa lỗi AI]</div>
-                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
-                  <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-900/50 p-3 rounded-lg border border-emerald-800">[Hậu kỳ thủ công]</div>
-                  <Icons.ChevronRight width="20" height="20" className="hidden lg:block text-emerald-500 shrink-0 relative z-10"/>
-                  <div className="flex-1 relative z-10 w-full lg:w-auto bg-emerald-500 text-white p-3 rounded-lg shadow-md font-bold">[Sản phẩm xuất sắc]</div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="relative pl-10 border-l-2 border-emerald-200 pb-2">
-                    <div className="absolute w-8 h-8 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-700 font-bold -left-[17px] -top-1">1</div>
-                    <h4 className="font-bold text-emerald-900 text-lg">Lên ý tưởng & Phác thảo</h4>
-                    <p className="text-neutral-600 mt-2 leading-relaxed">Xác định thông điệp thị giác cốt lõi, bảng màu chủ đạo và bố cục sơ khởi dựa trên các nguyên lý thiết kế đồ họa kinh điển.</p>
-                  </div>
-                  <div className="relative pl-10 border-l-2 border-emerald-200 pb-2">
-                    <div className="absolute w-8 h-8 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-700 font-bold -left-[17px] -top-1">2</div>
-                    <h4 className="font-bold text-emerald-900 text-lg">Đồng sáng tạo cùng AI</h4>
-                    <p className="text-neutral-600 mt-2 leading-relaxed">Sử dụng các công cụ AI tạo sinh hình ảnh/văn bản chuyên sâu. Áp dụng kỹ thuật kiểm soát prompt nâng cao (Inpainting/Outpainting hoặc tinh chỉnh tham số seed) qua nhiều thế hệ phiên bản để gạn lọc ra những chi tiết tối ưu nhất, khắc phục các lỗi giải phẫu hoặc lỗi hiển thị thô sơ của AI.</p>
-                  </div>
-                  <div className="relative pl-10 border-l-2 border-transparent pb-2">
-                    <div className="absolute w-8 h-8 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-700 font-bold -left-[17px] -top-1">3</div>
-                    <h4 className="font-bold text-emerald-900 text-lg">Hậu kỳ thủ công chuyên sâu</h4>
-                    <p className="text-neutral-600 mt-2 leading-relaxed">Chuyển sản phẩm thô từ AI vào các phần mềm đồ họa chuyên dụng (Photoshop/Illustrator) để tiến hành vector hóa, căn chỉnh lại tỷ lệ bố cục theo lưới, tối ưu hóa độ phân giải hiển thị và chèn các yếu tố chữ (Typography) thủ công.</p>
-                  </div>
-                </div>
-                
-                <div className="mt-8 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 text-emerald-900 shadow-sm flex items-start gap-4">
-                  <Icons.Sparkles width="32" height="32" className="shrink-0 text-emerald-500" />
-                  <div>
-                    <strong className="block text-lg mb-1">Kết luận</strong>
-                    Quy trình này chứng minh AI đóng vai trò mở rộng giới hạn sáng tạo và gia tốc thời gian thực thi, trong khi con người giữ vai trò kiểm soát chất lượng thẩm mỹ và định hướng tư duy nghệ thuật.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
+          title: "Bài tập 5: Sử dụng AI tạo sinh hỗ trợ sáng tạo nội dung",
+          topic: "Thiết kế Poster truyền thông đồ họa vector với thông điệp Bảo vệ môi trường.",
+          objective: "Tích hợp các công cụ AI tạo sinh vào quy trình sản xuất đồ họa một cách hiệu quả, đảm bảo sự cân bằng giữa công nghệ và tư duy nghệ thuật nguyên bản.",
+          summary: "Vận dụng thành thạo từ 3 công cụ AI tạo sinh trở lên để phân tích concept, khởi tạo Moodboard và phối màu. Sản phẩm thiết kế cuối cùng là sự kết hợp hài hòa, trong đó sự can thiệp, đóng góp tư duy thiết kế cốt lõi của cá nhân (xử lý vector, typography) chiếm trên 50%.",
+          evidence: "Báo cáo 5 trang trình bày chuyên nghiệp, phân tích rõ ràng vai trò của AI và đính kèm sản phẩm Poster cuối cùng cùng chuỗi ảnh chụp quá trình."
         },
         {
           id: 6,
-          title: "SỬ DỤNG AI CÓ TRÁCH NHIỆM",
-          icon: <Icons.ShieldCheck width="20" height="20" />,
-          content: (
-            <div className="space-y-10 fade-in">
-              <div>
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-emerald-900"><div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Icons.ShieldCheck width="20" height="20"/></div> 1. Bộ nguyên tắc đạo đức ứng dụng AI (5 Nguyên tắc)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xl mb-4">1</div>
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">Minh bạch (Transparency)</h4>
-                    <p className="text-neutral-600">Luôn công khai rõ ràng, trung thực các hạng mục, nội dung hoặc ý tưởng có sự hỗ trợ của AI trong mọi báo cáo và sản phẩm học tập.</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xl mb-4">2</div>
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">Kiểm chứng (Fact-checking)</h4>
-                    <p className="text-neutral-600">Không bao giờ thừa nhận trực tiếp dữ liệu do AI cung cấp; luôn tiến hành đối chiếu, kiểm tra chéo với các nguồn tài liệu học thuật chính thống.</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xl mb-4">3</div>
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">Bảo mật dữ liệu (Privacy)</h4>
-                    <p className="text-neutral-600">Tuyệt đối không tải lên các công cụ AI công cộng các thông tin cá nhân nhạy cảm, dữ liệu mật của nhà trường hoặc các sản phẩm trí tuệ chưa công bố.</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-xl mb-4">4</div>
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">Tôn trọng bản quyền</h4>
-                    <p className="text-neutral-600">Chỉ sử dụng AI làm công cụ gợi ý ý tưởng; không sử dụng AI để sao chép nguyên bản phong cách nghệ thuật hoặc đạo văn tác phẩm của người khác.</p>
-                  </div>
-                  <div className="bg-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-200 flex flex-col items-center text-center md:col-span-2 transition-transform hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-xl mb-4 shadow-md">5</div>
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">Làm chủ công nghệ (Human-in-the-loop)</h4>
-                    <p className="text-emerald-800 max-w-2xl">Giữ vững vai trò quyết định tối cao trong tư duy và lập luận; AI chỉ là trợ lý, con người là chủ thể chịu trách nhiệm hoàn toàn về sản phẩm cuối cùng.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-neutral-900 p-8 rounded-3xl border border-neutral-800 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-6 opacity-20"><Icons.ShieldCheck width="120" height="120" className="text-emerald-500" /></div>
-                <h3 className="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-3 relative z-10">
-                  2. Tư duy phản biện về thách thức đạo đức và Giải pháp
-                </h3>
-                <div className="text-neutral-300 leading-relaxed space-y-4 text-lg relative z-10">
-                  <p>Sự bùng nổ của AI mang lại rủi ro lớn về tính lười biếng tư duy và hiện tượng <strong>"Ảo tưởng AI" (AI Hallucination)</strong> - nơi mô hình tạo ra các thông tin sai lệch nhưng lập luận rất thuyết phục. Điều này đe dọa nghiêm trọng đến tính liêm chính học thuật.</p>
-                  <p>Để đối phó với thách thức này, giải pháp của tôi là chủ động áp dụng tư duy phản biện cao độ: Mỗi văn bản do AI tạo ra đều phải đi qua bộ lọc kiểm tra đạo văn và kiểm tra nguồn gốc thủ công. Việc sử dụng công cụ kiểm tra AI (AI Detection Tools) kết hợp với kỹ thuật dẫn nguồn chuẩn hóa (APA/IEEE) là minh chứng cho thấy sự nghiêm túc của tôi trong việc bảo vệ tính độc lập và liêm chính trong môi trường học thuật số.</p>
-                </div>
-              </div>
-            </div>
-          )
+          title: "Bài tập 6: Sử dụng AI có trách nhiệm trong học tập & nghiên cứu",
+          topic: "Ranh giới đạo đức, sở hữu trí tuệ và liêm chính học thuật khi ứng dụng AI.",
+          objective: "Xây dựng khung đạo đức nghề nghiệp số, tôn trọng bản quyền phong cách nghệ thuật khi khai thác các công cụ Trí tuệ nhân tạo.",
+          summary: "Phân tích sâu sắc các thách thức đạo đức cốt lõi: Ranh giới giữa lấy cảm hứng và đạo nhái, vấn đề bản quyền hình ảnh, và tác động đến năng lực tư duy. Minh bạch hoàn toàn các dấu vết can thiệp của AI. Thiết lập một bộ nguyên tắc cá nhân khắt khe gồm 7 điều liên kết chặt chẽ với đạo đức.",
+          evidence: "Báo cáo có bố cục khoa học, đính kèm một Infographic thiết kế xuất sắc, sáng tạo, truyền tải cô đọng 7 nguyên tắc đạo đức nghề nghiệp số."
         }
       ];
 
       return (
-        <MDiv initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-7xl mx-auto w-full">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-emerald-950 mb-4">Portfolio Projects</h1>
-            <p className="text-neutral-500 text-lg">Tuyển tập các bài tập thực hành kỹ năng số</p>
-            <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full mt-6"></div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="lg:w-1/3 shrink-0">
-              <div className="sticky top-28 bg-white p-4 rounded-3xl shadow-lg border border-neutral-200 flex flex-col gap-2 relative z-10">
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 px-4">Danh sách bài tập</div>
-                {projects.map(proj => (
-                  <button
-                    key={proj.id}
-                    onClick={() => setActiveTab(proj.id)}
-                    className={`text-left px-5 py-4 rounded-2xl transition-all duration-300 flex items-center gap-4 font-medium relative overflow-hidden ${
-                      activeTab === proj.id 
-                        ? 'bg-emerald-600 text-white shadow-md' 
-                        : 'text-neutral-600 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-100'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300 ${activeTab === proj.id ? 'bg-white/20 text-white' : 'bg-neutral-100 text-emerald-700'}`}>
-                      {proj.icon}
-                    </div>
-                    <span className="line-clamp-2 leading-snug">{proj.title}</span>
-                  </button>
-                ))}
-              </div>
+        <section id="projects" className="py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-16">
+              <span className="text-accent font-semibold tracking-wider uppercase text-sm">Hệ thống hóa kỹ năng</span>
+              <h2 className="text-4xl md:text-5xl font-bold mt-2 tracking-tight">Quy trình thực hiện Dự án</h2>
             </div>
-
-            <div className="lg:w-2/3">
-              {AnimatePresence ? (
-                <AnimatePresence mode="wait">
-                  <MDiv
-                    key={activeTab}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
-                    className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-neutral-200"
-                  >
-                    <div className="mb-10 border-b border-neutral-100 pb-6">
-                      <span className="text-emerald-600 font-bold text-sm tracking-wider uppercase mb-2 block">Bài tập {activeTab}</span>
-                      <h2 className="text-2xl md:text-3xl font-bold text-emerald-950 leading-tight">
-                        {projects.find(p => p.id === activeTab).title}
-                      </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {projectsData.map((project, index) => (
+                <motion.div 
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="group bg-surface border border-gray-100 p-8 rounded-[2rem] hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl font-black italic pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                    0{project.id}
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4 pr-12 text-primary">{project.title}</h3>
+                  <div className="inline-block bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                    {project.topic}
+                  </div>
+                  
+                  <div className="flex flex-col gap-4 text-gray-700">
+                    <div>
+                      <strong className="flex items-center gap-2 text-primary mb-1"><TargetIcon /> Mục tiêu:</strong>
+                      <p className="text-sm leading-relaxed pl-7">{project.objective}</p>
                     </div>
-                    {projects.find(p => p.id === activeTab).content}
-                  </MDiv>
-                </AnimatePresence>
-              ) : (
-                <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-neutral-200 fade-in">
-                    <div className="mb-10 border-b border-neutral-100 pb-6">
-                      <span className="text-emerald-600 font-bold text-sm tracking-wider uppercase mb-2 block">Bài tập {activeTab}</span>
-                      <h2 className="text-2xl md:text-3xl font-bold text-emerald-950 leading-tight">
-                        {projects.find(p => p.id === activeTab).title}
-                      </h2>
+                    <div>
+                      <strong className="flex items-center gap-2 text-primary mb-1"><ActivityIcon /> Tóm tắt quá trình:</strong>
+                      <p className="text-sm leading-relaxed pl-7">{project.summary}</p>
                     </div>
-                    {projects.find(p => p.id === activeTab).content}
-                </div>
-              )}
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100 mt-2">
+                      <strong className="flex items-center gap-2 text-primary mb-1 text-sm"><FileCheckIcon /> Minh chứng:</strong>
+                      <p className="text-sm leading-relaxed text-gray-600 pl-7">{project.evidence}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
-        </MDiv>
-      )
+        </section>
+      );
     }
 
-    function ConclusionPage() {
+    function Summary() {
       return (
-        <MDiv initial={{opacity:0, y: 20}} animate={{opacity:1, y: 0}} exit={{opacity:0}} className="pt-24 pb-20 px-6 max-w-4xl mx-auto w-full">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-emerald-950 mb-6">Tổng Kết Hành Trình</h1>
-            <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full"></div>
-          </div>
+        <section id="summary" className="py-24 bg-primary text-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-16">
+              <span className="text-accent font-medium tracking-wider uppercase text-sm">Hành trình phát triển</span>
+              <h2 className="text-4xl md:text-5xl font-bold mt-2 tracking-tight text-white">Tổng kết & Đúc kết</h2>
+            </div>
 
-          <div className="bg-white p-8 md:p-14 rounded-3xl shadow-xl border border-neutral-100 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-600"></div>
-            <Icons.Quote width="96" height="96" className="absolute top-10 left-10 text-emerald-50 opacity-50 pointer-events-none" />
-            
-            <div className="relative z-10">
-              <h2 className="text-2xl md:text-3xl font-bold text-emerald-900 text-center mb-12 leading-relaxed italic px-4">
-                "Công nghệ số không thay thế tư duy của chúng ta,<br/>nó định hình lại cách chúng ta hiện thực hóa những tư duy đó."
-              </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="bg-white/5 border border-white/10 p-8 rounded-[2rem]"
+              >
+                <h3 className="text-2xl font-bold mb-6 text-[#EAECE9]">Trải nghiệm & Cảm nhận</h3>
+                <p className="text-gray-300 leading-relaxed text-sm md:text-base">
+                  Quá trình tự tay xây dựng Portfolio này mang lại cho mình một trải nghiệm vô cùng đáng giá. Ban đầu, việc phải hệ thống hóa lại hàng loạt bài tập và học cách thiết kế một giao diện web/blog khá thử thách. Tuy nhiên, khi nhìn thấy các sản phẩm thiết kế đồ họa của mình được trưng bày một cách khoa học, chuyên nghiệp, mình cảm thấy rất tự hào và nhận ra tầm quan trọng của việc đóng gói năng lực cá nhân trong thời đại số.
+                </p>
+              </motion.div>
 
-              <div className="space-y-6 text-lg text-neutral-700 leading-relaxed font-medium">
-                <p>
-                  Nhìn lại toàn bộ hành trình thực hiện dự án Portfolio cá nhân này, tôi tự nhận thấy một bước chuyển dịch lớn trong nhận thức và năng lực hành vi số của bản thân. Trước khi tiếp cận môn học, việc quản lý máy tính hay tương tác với các hệ thống thông minh của tôi chủ yếu dựa trên thói quen tự phát và cảm tính.
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white/5 border border-white/10 p-8 rounded-[2rem]"
+              >
+                <h3 className="text-2xl font-bold mb-6 text-[#EAECE9]">Kiến thức & Kỹ năng</h3>
+                <p className="text-gray-300 leading-relaxed text-sm md:text-base">
+                  Kỹ năng giá trị nhất mình gặt hái được là <strong>"Tư duy hệ thống và làm chủ công cụ"</strong>. Cụ thể là việc am hiểu sâu về phần cứng thiết bị để phục vụ công việc thiết kế, khả năng khai thác luồng thông tin học thuật chính xác, và đặc biệt là kỹ thuật Prompt Engineering. Những kỹ năng này đã thay đổi hoàn toàn cách mình tiếp cận với một đồ án thiết kế: khoa học hơn, nhanh chóng hơn và logic hơn.
                 </p>
-                <p>
-                  Quá trình xây dựng không gian lưu trữ này đã đặt ra cho tôi không ít thách thức lớn: từ việc phải từ bỏ thói quen đặt tên file bừa bãi để thiết lập một cây thư mục khoa học, cho đến việc liên tục thất bại khi viết những prompt ngây thơ ban đầu cho AI. Những rào cản đó buộc tôi phải chủ động nghiên cứu sâu hơn về bản chất của công nghệ: nghiên cứu cách các toán tử tìm kiếm vận hành, hiểu về cơ chế chú ý ngữ cảnh của các mô hình ngôn ngữ lớn, và học cách vận hành dòng công việc nhóm một cách tự động hóa trên môi trường số.
-                </p>
-                <p>
-                  Kinh nghiệm quý báu nhất tôi đúc kết được là <strong className="text-emerald-800">khả năng tư duy hệ thống</strong> và <strong className="text-emerald-800">năng lực làm chủ công nghệ có trách nhiệm</strong>. Là một sinh viên chuyên ngành thiết kế đồ họa, các kỹ năng số nâng cao thu hoạch được từ môn học này – đặc biệt là kỹ thuật Prompt Engineering kiểm soát AI tạo sinh hình ảnh và tư duy quản lý tài nguyên số khoa học – sẽ là bệ phóng cực kỳ vững chắc.
-                </p>
-                <div className="bg-emerald-50 p-8 rounded-2xl border-l-4 border-emerald-500 mt-10 text-emerald-950 shadow-inner text-xl">
-                  Chúng cho phép tôi tăng tốc quy trình phác thảo ý tưởng thị giác, tối ưu hóa thời gian sản xuất và phối hợp làm việc nhóm hiệu quả trong các đồ án chuyên ngành thiết kế phức tạp sau này, sẵn sàng đáp ứng những tiêu chuẩn khắt khe của ngành công nghiệp sáng tạo hiện đại.
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="bg-accent/20 border border-accent/30 p-8 rounded-[2rem]"
+              >
+                <h3 className="text-2xl font-bold mb-6 text-white">Điểm tâm đắc & Thách thức</h3>
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <strong className="block text-accent mb-2">✨ Điều tâm đắc nhất:</strong>
+                    <p className="text-gray-300 leading-relaxed text-sm">
+                      Mình đã thành công trong việc kết nối các bài tập công nghệ khô khan với chính chuyên ngành Thiết kế Đồ họa và những sở thích cá nhân. Các bài tập không còn mang tính đối phó mà thực sự là những giải pháp phục vụ trực tiếp cho công việc thực tế của mình.
+                    </p>
+                  </div>
+                  <div>
+                    <strong className="block text-rose-400 mb-2">🔥 Thách thức lớn nhất:</strong>
+                    <p className="text-gray-300 leading-relaxed text-sm">
+                      Rào cản lớn nhất là việc duy trì sự nhất quán (consistency) về hình ảnh và nội dung trên toàn bộ website. Việc tóm tắt một quá trình làm việc phức tạp thành những đoạn văn ngắn gọn yêu cầu sự chắt lọc ngôn từ rất lớn, giúp mình nâng cao đáng kể tư duy trình bày.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </MDiv>
-      )
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="py-8 bg-[#0D170E] text-center text-gray-500 text-sm">
+          <p>&copy; {new Date().getFullYear()} Bùi Đức Đồng. Designed & Built for Academic Portfolio.</p>
+        </footer>
+      );
     }
 
     function App() {
-      const [currentPage, setCurrentPage] = useState('Home');
-
       return (
-        <div className="min-h-screen bg-[#F8FAF9] text-neutral-900 font-sans antialiased flex flex-col">
-          <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-          <main className="flex-1">
-            {AnimatePresence ? (
-              <AnimatePresence mode="wait">
-                {currentPage === 'Home' && <HomePage key="home" />}
-                {currentPage === 'Projects' && <ProjectsPage key="projects" />}
-                {currentPage === 'Conclusion' && <ConclusionPage key="conclusion" />}
-              </AnimatePresence>
-            ) : (
-              <div className="fade-in">
-                {currentPage === 'Home' && <HomePage key="home" />}
-                {currentPage === 'Projects' && <ProjectsPage key="projects" />}
-                {currentPage === 'Conclusion' && <ConclusionPage key="conclusion" />}
-              </div>
-            )}
-          </main>
-          
-          <footer className="py-8 text-center text-neutral-500 text-sm border-t border-neutral-200 mt-auto bg-white">
-            &copy; {new Date().getFullYear()} Digital Portfolio - Trang. Thiết kế Đồ họa.
-          </footer>
+        <div className="flex flex-col">
+          <Navbar />
+          <Hero />
+          <Projects />
+          <Summary />
+          <Footer />
         </div>
-      )
+      );
     }
 
     const root = createRoot(document.getElementById('root'));
