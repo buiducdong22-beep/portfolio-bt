@@ -64,12 +64,24 @@
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
   
   <!-- Framer Motion UMD -->
-  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js" crossorigin="anonymous"></script>
   
   <!-- Babel Standalone to compile JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-surface text-primary antialiased selection:bg-accent selection:text-white">
+  <div id="error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:red; color:white; padding:20px; z-index:99999; font-family:sans-serif; font-weight:bold; white-space:pre-wrap;"></div>
+  <script>
+    window.onerror = function(msg, url, line, col, error) {
+      document.getElementById('error-banner').style.display = 'block';
+      document.getElementById('error-banner').textContent = 'ERROR: ' + msg + '\nLine: ' + line + '\nCol: ' + col + '\nStack:\n' + (error ? error.stack : '');
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+      document.getElementById('error-banner').style.display = 'block';
+      document.getElementById('error-banner').textContent = 'PROMISE REJECTION: ' + event.reason;
+    });
+  </script>
   <div id="root"></div>
 
   <script type="text/babel">
@@ -246,7 +258,7 @@
       }, []);
 
       return (
-        <>
+        <React.Fragment>
           <motion.div
             className="fixed top-0 left-0 w-12 h-12 rounded-full border-2 border-accent z-[100] pointer-events-none hidden md:flex items-center justify-center mix-blend-multiply"
             animate={{ 
@@ -261,7 +273,7 @@
             className="fixed top-0 left-0 w-2 h-2 rounded-full bg-primary z-[100] pointer-events-none hidden md:block"
             style={{ transform: `translate(${mousePosition.x - 4}px, ${mousePosition.y - 4}px)` }}
           />
-        </>
+        </React.Fragment>
       );
     }
 
